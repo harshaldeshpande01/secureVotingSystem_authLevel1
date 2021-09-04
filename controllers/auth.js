@@ -74,7 +74,7 @@ exports.forgotPassword = async (req, res, next) => {
     await user.save();
 
     // Create reset url to email to provided email
-    const resetUrl = `https://secure-voting-authlevel1.herokuapp.com/passwordreset/${resetToken}`;
+    const resetUrl = `http://localhost:3000/authLevel1/passwordreset/${resetToken}`;
 
     // HTML Message
     const message = `
