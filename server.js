@@ -1,7 +1,10 @@
 require("dotenv").config({ path: "./config.env" });
+
 const express = require("express");
 const cors = require('cors')
 const helmet = require('helmet');
+const csurf = require('csurf')
+
 const connectDB = require("./config/db");
 const errorHandler = require("./middleware/error");
 const fileUpload = require('express-fileupload');
@@ -12,7 +15,8 @@ connectDB();
 
 app.use(express.json());
 app.use(cors());
-app.use(helmet())
+app.use(helmet());
+csrfProtection = csrf({ cookie: false })
 app.use(fileUpload());
 
 app.get("/", (req, res, next) => {
