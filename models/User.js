@@ -4,10 +4,6 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const UserSchema = new mongoose.Schema({
-  voterId: {
-    type: String,
-    required: [true, "Please provide voter ID"],
-  },
   email: {
     type: String,
     required: [true, "Please provide email address"],
@@ -23,10 +19,14 @@ const UserSchema = new mongoose.Schema({
     minlength: 6,
     select: false,
   },
+  phone: {
+    type: String,
+    // required: [true, "Please provie phone number"],
+    // minlength: 10,
+    // maxlength: 13,
+  },
   resetPasswordToken: String,
-  resetPasswordExpire: Date,
-  otp: String,
-  otpExpire: Date
+  resetPasswordExpire: Date
 });
 
 UserSchema.pre("save", async function (next) {
@@ -47,7 +47,7 @@ UserSchema.methods.getSignedJwtToken = function () {
   return jwt.sign(
     { 
       id: this._id,
-      email: this.email,
+      phone: this.phone,
       authLevel1: true
     }, 
     process.env.JWT_SECRET, 

@@ -3,54 +3,52 @@ const ErrorResponse = require("../utils/errorResponse");
 const User = require("../models/User");
 const sendEmail = require("../utils/sendEmail");
 
+
 // @desc    Login user
-exports.login = async (req, res, next) => {
-  const { email, password } = req.body;
+exports.login = 
+  async (req, res, next) => { 
+    const { email, password } = req.body;
 
-  // Check if email and password is provided
-  if (!email || !password) {
-    return next(new ErrorResponse("Please provide an email and password", 400));
-  }
+    try {
+      // Check that user exists by email
+      const user = await User.findOne({ email }).select("+password");
 
-  try {
-    // Check that user exists by email
-    const user = await User.findOne({ email }).select("+password");
+      if (!user) {
+        return next(new ErrorResponse("No account linked with this email!! Please register first to continue", 401));
+      }
 
-    if (!user) {
-      return next(new ErrorResponse("No account linked with this email!! Please register first to continue", 401));
+      // Check that password match
+      const isMatch = await user.matchPassword(password);
+
+      if (!isMatch) {
+        return next(new ErrorResponse("Invalid password", 401));
+      }
+
+      sendToken(user, 200, res);
+    } catch (err) {
+      next(err);
     }
-
-    // Check that password match
-    const isMatch = await user.matchPassword(password);
-
-    if (!isMatch) {
-      return next(new ErrorResponse("Invalid password", 401));
-    }
-
-    sendToken(user, 200, res);
-  } catch (err) {
-    next(err);
-  }
 };
 
 // @desc    Register user
 exports.register = async (req, res, next) => {
-  const { voterId, email, password } = req.body;
+  const { email, password, phone } = req.body;
+  // console.log(req.files.file);
 
   try {
-    const curr = await User.findOne({ voterId });
+    const curr = await User.findOne({ email });
 
     if (curr) {
-      return next(new ErrorResponse("Account with this voter ID already exists! Please Login instead to continue", 400));
+      return next(new ErrorResponse("Account with this email already exists! Please Login instead to continue", 400));
     }
 
-    const user = await User.create({
-      voterId,
+    await User.create({
       email,
       password,
+      phone
     });
 
-    sendToken(user, 200, res);
+    res.status(200).json({ success: true, data: "Account created successfully! Please Login to continue" });
   } catch (err) {
     next(err);
   }
@@ -60,18 +58,21 @@ exports.register = async (req, res, next) => {
 exports.forgotPassword = async (req, res, next) => {
   // Send Email to email provided but first check if user exists
   const { email } = req.body;
+  console.log(1);
 
   try {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return next(new ErrorResponse("No email could not be sent", 404));
+      return next(new ErrorResponse("No account linked with this email", 404));
     }
 
     // Reset Token Gen and add to database hashed (private) version of token
     const resetToken = user.getResetPasswordToken();
 
     await user.save();
+
+    console.log(2);
 
     // Create reset url to email to provided email
     const resetUrl = `http://localhost:3000/authLevel1/passwordreset/${resetToken}`;
@@ -89,6 +90,7 @@ exports.forgotPassword = async (req, res, next) => {
         subject: "Password Reset Request",
         text: message,
       });
+      console.log(3);
 
       res.status(200).json({ success: true, data: "Email Sent" });
     } catch (err) {

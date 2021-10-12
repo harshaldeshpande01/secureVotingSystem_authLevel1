@@ -1,14 +1,19 @@
 require("dotenv").config({ path: "./config.env" });
 const express = require("express");
-var cors = require('cors')
-const app = express();
+const cors = require('cors')
+const helmet = require('helmet');
 const connectDB = require("./config/db");
 const errorHandler = require("./middleware/error");
+const fileUpload = require('express-fileupload');
 
+
+const app = express();
 connectDB();
 
 app.use(express.json());
 app.use(cors());
+app.use(helmet())
+app.use(fileUpload());
 
 app.get("/", (req, res, next) => {
   res.send("Api running");
