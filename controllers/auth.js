@@ -1,30 +1,48 @@
 const crypto = require("crypto");
-const ErrorResponse = require("../utils/errorResponse");
+const axios = require('axios')
 const User = require("../models/User");
 const sendEmail = require("../utils/sendEmail");
 
+async function validateHuman(token) {
+  const secret = process.env.RECAPTCHA_SECRET;
+  const res = await axios.post(
+    `https://www.google.com/recaptcha/api/siteverify?secret=${secret}&response=${token}`
+  );
+  return res.data.success;
+}
 
 // @desc    Login user
 exports.login = 
   async (req, res, next) => { 
-    const { email, password } = req.body;
+    const { 
+      email, 
+      password, 
+      captchaToken 
+    } = req.body;
+
+    const human = await validateHuman(captchaToken);
+
+    if(!human) {
+      return res.status(400).send('Suspected Bot!');
+    }
 
     try {
       // Check that user exists by email
       const user = await User.findOne({ email }).select("+password");
-
-      if (!user) {
-        return next(new ErrorResponse("No account linked with this email!! Please register first to continue", 401));
-      }
+      let isMatch = false;
 
       // Check that password match
-      const isMatch = await user.matchPassword(password);
-
-      if (!isMatch) {
-        return next(new ErrorResponse("Invalid password", 401));
+      if(user) {
+        isMatch = await user.matchPassword(password);
       }
 
-      sendToken(user, 200, res);
+      if (user && isMatch) {
+        sendToken(user, 200, res);
+      }
+      else {
+        res.status(400).send('Login failed! Invalid credentials');
+      }
+
     } catch (err) {
       next(err);
     }
@@ -32,23 +50,36 @@ exports.login =
 
 // @desc    Register user
 exports.register = async (req, res, next) => {
-  const { email, password, phone } = req.body;
-  // console.log(req.files.file);
+  const { 
+    email, 
+    password, 
+    phone,
+    captchaToken 
+  } = req.body;
+  
+  const human = await validateHuman(captchaToken);
+
+  if(!human) {
+    return res.status(400).send('Suspected Bot!');
+  }
 
   try {
     const curr = await User.findOne({ email });
 
-    if (curr) {
-      return next(new ErrorResponse("Account with this email already exists! Please Login instead to continue", 400));
+    if(!curr) {
+      await User.create({
+        email,
+        password,
+        phone
+      });
     }
 
-    await User.create({
-      email,
-      password,
-      phone
-    });
-
-    res.status(200).json({ success: true, data: "Account created successfully! Please Login to continue" });
+    if(curr) {
+      return res.status(400).send('Registration failed');
+    }
+    else {
+      res.status(201).json({ success: true, data: "Account created successfully! Please Login to continue" });
+    }
   } catch (err) {
     next(err);
   }
@@ -57,22 +88,28 @@ exports.register = async (req, res, next) => {
 // @desc    Forgot Password Initialization
 exports.forgotPassword = async (req, res, next) => {
   // Send Email to email provided but first check if user exists
-  const { email } = req.body;
-  console.log(1);
+  const { 
+    email,
+    captchaToken
+  } = req.body;
+  
+  const human = await validateHuman(captchaToken);
+
+  if(!human) {
+    return res.status(400).send('Suspected Bot!');
+  }
 
   try {
     const user = await User.findOne({ email });
 
-    if (!user) {
-      return next(new ErrorResponse("No account linked with this email", 404));
+    if (user) {
+      return res.status(400).send('Password reset failed');
     }
 
     // Reset Token Gen and add to database hashed (private) version of token
     const resetToken = user.getResetPasswordToken();
 
     await user.save();
-
-    console.log(2);
 
     // Create reset url to email to provided email
     const resetUrl = `http://localhost:3000/authLevel1/passwordreset/${resetToken}`;
@@ -90,7 +127,6 @@ exports.forgotPassword = async (req, res, next) => {
         subject: "Password Reset Request",
         text: message,
       });
-      console.log(3);
 
       res.status(200).json({ success: true, data: "Email Sent" });
     } catch (err) {
@@ -101,7 +137,7 @@ exports.forgotPassword = async (req, res, next) => {
 
       await user.save();
 
-      return next(new ErrorResponse("Email could not be sent", 500));
+      return res.status(500).json('Email could not be sen\'t');
     }
   } catch (err) {
     next(err);
@@ -110,6 +146,13 @@ exports.forgotPassword = async (req, res, next) => {
 
 // @desc    Reset User Password
 exports.resetPassword = async (req, res, next) => {
+
+  const human = await validateHuman(req.body.captchaToken);
+
+  if(!human) {
+    return res.status(400).send('Suspected Bot!');
+  }
+
   // Compare token in URL params to hashed token
   const resetPasswordToken = crypto
     .createHash("sha256")
@@ -123,7 +166,7 @@ exports.resetPassword = async (req, res, next) => {
     });
 
     if (!user) {
-      return next(new ErrorResponse("Invalid Token", 400));
+      return res.status(400).send('Password reset failed');
     }
 
     user.password = req.body.password;

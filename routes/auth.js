@@ -17,12 +17,20 @@ const {
   resetPassword,
 } = require("../controllers/auth");
 
-router.route("/register").post(sanitizeRegisterValues, register);
+// Rate limiters
+const {
+  loginLimiter,
+  registerLimiter,
+  forgotLimiter,
+  resetLimiter
+} = require('../middleware/rate_limiters');
 
-router.route("/login").post(sanitizeLoginValues, login);
+router.route("/register").post(registerLimiter, sanitizeRegisterValues, register);
 
-router.route("/forgotpassword").post(sanitizeForgotValues, forgotPassword);
+router.route("/login").post(loginLimiter, sanitizeLoginValues, login);
 
-router.route("/passwordreset/:resetToken").put(sanitizeResetValues, resetPassword);
+router.route("/forgotpassword").post(forgotLimiter, sanitizeForgotValues, forgotPassword);
+
+router.route("/passwordreset/:resetToken").put(resetLimiter, sanitizeResetValues, resetPassword);
 
 module.exports = router;

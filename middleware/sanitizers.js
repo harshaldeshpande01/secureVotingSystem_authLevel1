@@ -7,18 +7,19 @@ exports.sanitizeLoginValues = [
         .normalizeEmail()
         .not()
         .isEmpty()
-        // .withMessage('Invalid email address!')
         .bail(),
     check('password')
         .isLength({ min: 6 })
+        .isLength({ max: 64 })
         .not()
         .isEmpty()
         .trim()
         .escape(),
     (req, res, next) => {
         const errors = validationResult(req);
-        if (!errors.isEmpty())
-        return res.status(422).json({errors: errors.array()});
+        if (!errors.isEmpty()) {
+            return res.status(422).send('Invalid input');
+        }
         next();
     },
 ];
@@ -33,6 +34,7 @@ exports.sanitizeRegisterValues = [
         .bail(),
     check('password')
         .isLength({ min: 6 })
+        .isLength({ max: 64 })
         .not()
         .isEmpty()
         .trim()
@@ -44,8 +46,9 @@ exports.sanitizeRegisterValues = [
         .bail(),
     (req, res, next) => {
         const errors = validationResult(req);
-        if (!errors.isEmpty())
-        return res.status(422).json({errors: errors.array()});
+        if (!errors.isEmpty()) {
+            return res.status(422).send('Invalid input!');
+        }
         next();
     },
 ];
@@ -60,8 +63,9 @@ exports.sanitizeForgotValues = [
         .bail(),
     (req, res, next) => {
         const errors = validationResult(req);
-        if (!errors.isEmpty())
-        return res.status(422).json({errors: errors.array()});
+        if (!errors.isEmpty()) {
+            return res.status(422).send('Invalid input');
+        }
         next();
     },
 ];
@@ -69,14 +73,16 @@ exports.sanitizeForgotValues = [
 exports.sanitizeResetValues = [
     check('password')
         .isLength({ min: 6 })
+        .isLength({ max: 64 })
         .not()
         .isEmpty()
         .trim()
         .escape(),
     (req, res, next) => {
         const errors = validationResult(req);
-        if (!errors.isEmpty())
-        return res.status(422).json({errors: errors.array()});
+        if (!errors.isEmpty()) {
+            return res.status(422).send('Invalid input');
+        }
         next();
     },
 ];
