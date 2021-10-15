@@ -3,36 +3,54 @@
 require("dotenv").config({ path: "./config.env" });
 
 const express = require("express");
-
-const hpp = require('hpp');
-const cors = require('cors')
-const helmet = require('helmet');
+const connectDB = require("./config/db");
 
 const cluster = require('cluster');
 const os = require('os');
-const compression = require('compression'); 
 
-const connectDB = require("./config/db");
-const fileUpload = require('express-fileupload');
+const hpp = require('hpp');
+
+const cors = require('cors')
+const helmet = require('helmet');
+const compression = require('compression'); 
 
 
 const app = express();
 connectDB();
 
-const numCpu = os.cpus().length;
 
+// Middleware
+// Parse request
 app.use(express.json({ limit: "1kb" }));
+app.use(express.urlencoded({ extended: true }));
 app.use(hpp());
+
+// Set headers and gzip response
 app.use(cors());
 app.use(helmet());
-
 app.use(compression());
-app.use(fileUpload());
 
 // Connecting Router
 app.use("/api/auth", require("./routes/auth"));
 
+
+//404 handler and pass to error handler
+app.use((req, res, next) => {
+  const err = new Error('Not found');
+  err.status = 404;
+  next(err);
+});
+
+//Error handler
+app.use((err, req, res, next) => {
+  res.status(err.status || 500);
+  res.send(err.message);
+});
+
+
+// Server
 const PORT = process.env.PORT || 5000;
+const numCpu = os.cpus().length;
 
 if(cluster.isMaster) {
   for(let i=0; i<numCpu; i++) {
@@ -44,9 +62,10 @@ if(cluster.isMaster) {
   })
 } 
 else {
-  const server = app.listen(PORT, () =>
-    console.log(`Sever ${process.pid} running on port ${PORT}`)
-  );
+  const server = app.listen(PORT);
+  // , () =>
+  //   console.log(`Server ${process.pid} running on port ${PORT}`)
+  // );
   process.on("unhandledRejection", (err, promise) => {
     console.log(`Logged Error: ${err.message}`);
     server.close(() => process.exit(1));

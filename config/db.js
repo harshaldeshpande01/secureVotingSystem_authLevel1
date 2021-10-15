@@ -8,12 +8,11 @@ const connectDB = async () => {
       useCreateIndex: true,
       useFindAndModify: true,
     });
-    console.log("MongoDB Connected");
+    // console.log("MongoDB Connected");
   }
-  catch(err)
- {
-   console.log(err);
- }
+  catch(err) {
+    console.log(err);
+  }
 };
 
 module.exports = connectDB;

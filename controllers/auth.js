@@ -102,7 +102,7 @@ exports.forgotPassword = async (req, res, next) => {
   try {
     const user = await User.findOne({ email });
 
-    if (user) {
+    if (!user) {
       return res.status(400).send('Password reset failed');
     }
 

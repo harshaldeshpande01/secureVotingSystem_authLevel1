@@ -1,8 +1,8 @@
-POST http://localhost:9997/api/auth/register HTTP/1.1
+POST http://localhost:9997/api/auth/fewfewlui HTTP/1.1
 content-type: application/json
 
 {
-    "email": "harshal25012009@gmail.com",
-    "password": "pass",
+    "email": "harshal250120010@gmail.com",
+    "password": "pass123",
     "phone": "917420885315"
 }
