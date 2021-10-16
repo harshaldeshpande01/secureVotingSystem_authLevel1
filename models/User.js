@@ -2,6 +2,9 @@ const crypto = require("crypto");
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const fs = require('fs');
+
+const JWT_PRIVATE_KEY=fs.readFileSync(__dirname + '/../jwtRS256_level1.key', 'utf-8');
 
 const UserSchema = new mongoose.Schema({
   email: {
@@ -50,9 +53,10 @@ UserSchema.methods.getSignedJwtToken = function () {
       phone: this.phone,
       authLevel1: true
     }, 
-    process.env.JWT_SECRET, 
+    JWT_PRIVATE_KEY, 
     {
       expiresIn: process.env.JWT_EXPIRE,
+      algorithm: 'RS256'
     }
   );
 };

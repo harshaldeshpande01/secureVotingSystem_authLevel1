@@ -21,8 +21,8 @@ connectDB();
 
 // Middleware
 // Parse request
+app.use(express.urlencoded({ extended: true, limit: "1kb" }));
 app.use(express.json({ limit: "1kb" }));
-app.use(express.urlencoded({ extended: true }));
 app.use(hpp());
 
 // Set headers and gzip response

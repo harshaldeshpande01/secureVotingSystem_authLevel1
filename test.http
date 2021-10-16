@@ -1,8 +1,8 @@
-POST http://localhost:9997/api/auth/fewfewlui HTTP/1.1
+POST http://localhost:9997/api/auth/login HTTP/1.1
 content-type: application/json
 
 {
-    "email": "harshal250120010@gmail.com",
+    "email": "harshal25012001@gmail.com",
     "password": "pass123",
     "phone": "917420885315"
 }
