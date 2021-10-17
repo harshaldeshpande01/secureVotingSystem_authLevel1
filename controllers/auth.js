@@ -20,11 +20,11 @@ exports.login =
       captchaToken 
     } = req.body;
 
-    // const human = await validateHuman(captchaToken);
+    const human = await validateHuman(captchaToken);
 
-    // if(!human) {
-    //   return res.status(400).send('Suspected Bot!');
-    // }
+    if(!human) {
+      return res.status(400).send('Suspected Bot!');
+    }
 
     try {
       // Check that user exists by email
