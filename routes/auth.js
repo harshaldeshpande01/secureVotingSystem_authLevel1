@@ -15,17 +15,21 @@ const {
   register,
   forgotPassword,
   resetPassword,
+  confirmEmail,
 } = require("../controllers/auth");
 
 // Rate limiters
 const {
   loginLimiter,
   registerLimiter,
+  confirmLimiter,
   forgotLimiter,
   resetLimiter
 } = require('../middleware/rate_limiters');
 
 router.route("/register").post(registerLimiter, sanitizeRegisterValues, register);
+
+router.route("/confirmation/:token").put(confirmLimiter, confirmEmail);
 
 router.route("/login").post(loginLimiter, sanitizeLoginValues, login);
 
