@@ -4,12 +4,11 @@ const sendEmail = require("../utils/sendEmail");
 const jwt = require("jsonwebtoken");
 
 async function validateHuman(token) {
-  // const secret = process.env.RECAPTCHA_SECRET;
-  // const res = await axios.post(
-  //   `https://www.google.com/recaptcha/api/siteverify?secret=${secret}&response=${token}`
-  // );
-  // return res.data.success;
-  return true;
+  const secret = process.env.RECAPTCHA_SECRET;
+  const res = await axios.post(
+    `https://www.google.com/recaptcha/api/siteverify?secret=${secret}&response=${token}`
+  );
+  return res.data.success;
 }
 
 // @desc    Login user
@@ -105,7 +104,7 @@ exports.register = async (req, res, next) => {
   if(!curr)
     res.status(200).json({data: 'Confirmation email has been sen\'t to your email. Please check your inbox'});
   else 
-    res.status(400).send('Registation failed! Already registered');
+    res.status(400).send('Registation failed!');
 
 };
 
