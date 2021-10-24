@@ -109,14 +109,8 @@ exports.register = async (req, res, next) => {
 };
 
 
-// @desc    Reset User Password
+// @desc    Confirm User Email
 exports.confirmEmail = async (req, res, next) => {
-
-  const human = await validateHuman(req.body.captchaToken);
-
-  if(!human) {
-    return res.status(400).send('Suspected Bot!');
-  }
 
   const token = req.params.token;
 
