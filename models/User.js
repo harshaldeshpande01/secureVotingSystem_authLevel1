@@ -44,6 +44,7 @@ UserSchema.methods.matchPassword = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
 
+
 UserSchema.methods.getSignedJwtToken = function () {
   return jwt.sign(
     { 
@@ -51,7 +52,7 @@ UserSchema.methods.getSignedJwtToken = function () {
       phone: this.phone,
       authLevel1: true
     }, 
-    process.env.PRIVATE_KEY, 
+    Buffer.from(process.env.JWT_PRIVATE , 'base64').toString('ascii'),
     {
       expiresIn: process.env.JWT_EXPIRE,
       algorithm: 'RS256'

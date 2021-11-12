@@ -4,11 +4,12 @@ const sendEmail = require("../utils/sendEmail");
 const jwt = require("jsonwebtoken");
 
 async function validateHuman(token) {
-  const secret = process.env.RECAPTCHA_SECRET;
-  const res = await axios.post(
-    `https://www.google.com/recaptcha/api/siteverify?secret=${secret}&response=${token}`
-  );
-  return res.data.success;
+  // const secret = process.env.RECAPTCHA_SECRET;
+  // const res = await axios.post(
+  //   `https://www.google.com/recaptcha/api/siteverify?secret=${secret}&response=${token}`
+  // );
+  // return res.data.success;
+  return true
 }
 
 // @desc    Login user
@@ -31,19 +32,21 @@ exports.login =
       const user = await User.findOne({ email }).select("+password");
       let isMatch = false;
 
+      if(!user)
+        return res.status(400).send('Invalid credentials');
+
       if(!user.confirmed)
         return res.status(400).send('Invalid credentials');
 
       // Check that password match
       if(user) {
         isMatch = await user.matchPassword(password);
-      }
-
-      if (user && isMatch) {
-        sendToken(user, 200, res);
-      }
-      else {
-        res.status(400).send('Login failed! Invalid credentials');
+        if (isMatch) {
+          sendToken(user, 200, res);
+        }
+        else {
+          return res.status(400).send('Invalid credentials');
+        }
       }
 
     } catch (err) {

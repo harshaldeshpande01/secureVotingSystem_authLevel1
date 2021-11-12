@@ -6,3 +6,12 @@ content-type: application/json
     "password": "pass12",
     "phone": "917420885315"
 }
+
+
+# POST https://secure-voting-authlevel1.herokuapp.com/api/auth/login HTTP/1.1
+# content-type: application/json
+
+# {
+#     "email": "harshal25012001@gmail.com",
+#     "password": "pass12"
+# }
