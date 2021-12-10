@@ -4,12 +4,11 @@ const sendEmail = require("../utils/sendEmail");
 const jwt = require("jsonwebtoken");
 
 async function validateHuman(token) {
-  // const secret = process.env.RECAPTCHA_SECRET;
-  // const res = await axios.post(
-  //   `https://www.google.com/recaptcha/api/siteverify?secret=${secret}&response=${token}`
-  // );
-  // return res.data.success;
-  return true
+  const secret = process.env.RECAPTCHA_SECRET;
+  const res = await axios.post(
+    `https://www.google.com/recaptcha/api/siteverify?secret=${secret}&response=${token}`
+  );
+  return res.data.success;
 }
 
 // @desc    Login user
@@ -40,6 +39,7 @@ exports.login =
 
       // Check that password match
       if(user) {
+        console.log(3)
         isMatch = await user.matchPassword(password);
         if (isMatch) {
           sendToken(user, 200, res);
