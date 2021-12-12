@@ -89,7 +89,7 @@ exports.register = async (req, res, next) => {
         expiresIn: '1d',
       },
       (err, emailToken) => {
-        const url = `http://localhost:3000/authLevel1/confirmation/${emailToken}`;
+        const url = `https://secure-voting-system-frontend-next-js.vercel.app/confirm/${emailToken}`;
         const message = `
           <p>Please follow this link to confirm your email</p>
           <a href=${url} clicktracking=off>${url}</a>
@@ -131,6 +131,7 @@ exports.confirmEmail = async (req, res, next) => {
       });
     }
   } catch (err) {
+    console.log(err)
     next(res.status(400).send('Invalid token'));
   }
 };
@@ -166,7 +167,7 @@ exports.forgotPassword = async (req, res, next) => {
         expiresIn: '1d',
       },
       (err, resetToken) => {
-        const url = `http://localhost:3000/authLevel1/passwordreset/${resetToken}`;
+        const url = `https://secure-voting-system-frontend-next-js.vercel.app/reset/${resetToken}`;
         const message = `
           <h1>You have requested a password reset</h1>
           <p>Please make a put request to the following link:</p>
@@ -221,3 +222,4 @@ const sendToken = (user, statusCode, res) => {
   const token = user.getSignedJwtToken();
   res.status(statusCode).json({ sucess: true, token });
 };
+
